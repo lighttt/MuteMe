@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MuteMe</string>
+    <string name="settings_label">Settings</string>
+    <string name="enable_geofences">Enable Geofences</string>
+    <string name="add_new_location">Add new location</string>
+    <string name="location_list">Location List</string>
+</resources>
