@@ -45,12 +45,37 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="4dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="4dp"
+            android:src="@drawable/ic_place" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/enable_location"
+            android:onClick="onLocationEnabled"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:text="@string/enable_location"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+    </LinearLayout>
+
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:background="@color/colorPrimary"
         android:text="@string/add_new_location"
+        android:onClick="addNewLocation"
         android:textAppearance="@style/TextAppearance.AppCompat.Button"
         android:textColor="@android:color/white" />
 

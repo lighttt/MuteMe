@@ -4,4 +4,6 @@
     <string name="enable_geofences">Enable Geofences</string>
     <string name="add_new_location">Add new location</string>
     <string name="location_list">Location List</string>
+    <string name="google_api_key">AIzaSyD1GzhjnjhgcrOJ1jfJEIjEp57c-OKhzLA</string>
+    <string name="enable_location">Enable Location</string>
 </resources>
