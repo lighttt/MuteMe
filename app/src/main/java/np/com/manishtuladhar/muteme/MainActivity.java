@@ -12,6 +12,8 @@ import android.Manifest;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,11 +22,17 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+
+import java.util.ArrayList;
+import java.util.List;
 
 import np.com.manishtuladhar.muteme.provider.PlaceContract;
 
@@ -35,11 +43,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     //values
     private RecyclerView mRecyclerView;
+    private PlaceListAdapter mAdapter;
 
     //permission
     private static final int PERMISSION_REQUEST_LOCATION = 111;
     private static final int PLACE_REQ_CODE = 1;
 
+    GoogleApiClient mClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,8 +59,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         //setup
         mRecyclerView = findViewById(R.id.places_rv);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mAdapter = new PlaceListAdapter(this,null);
+        mRecyclerView.setAdapter(mAdapter);
 
-        GoogleApiClient client = new GoogleApiClient.Builder(this)
+        mClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
@@ -58,6 +70,39 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .enableAutoManage(this,this)
                 .build();
     }
+
+    /*
+     Helps to get all the data from the list and get the places ko details
+     */
+    void refreshPlacesData()
+    {
+        Uri uri = PlaceContract.PlaceEntry.CONTENT_URI;
+        Cursor data = getContentResolver().query(
+                uri,
+                null,
+                null,
+                null,
+                null);
+        if(data == null || data.getCount() == 0)
+        {
+            return;
+        }
+        List<String> gUIds = new ArrayList<String>();
+        while (data.moveToNext())
+        {
+            gUIds.add(data.getString(data.getColumnIndex(PlaceContract.PlaceEntry.COLUMN_PLACE_ID)));
+        }
+        PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi.
+                getPlaceById(mClient,gUIds.toArray(new String[gUIds.size()]));
+        placeResult.setResultCallback(new ResultCallback<PlaceBuffer>() {
+            @Override
+            public void onResult(@NonNull PlaceBuffer places) {
+                mAdapter.swapPlaces(places);
+            }
+        });
+
+    }
+
 
     // ================== PLACE PICKER ===========================
 
@@ -93,14 +138,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 Log.e(TAG, "onActivityResult: No place selected");
                 return;
             }
-            String placeName = place.getName().toString();
-            String placeAddress = place.getAddress().toString();
             String placeId = place.getId();
 
             // insert into db
             ContentValues contentValues = new ContentValues();
             contentValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeId);
             getContentResolver().insert(PlaceContract.PlaceEntry.CONTENT_URI, contentValues);
+
+            //refresh new data
+            refreshPlacesData();
         }
     }
 
@@ -134,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.e(TAG, "onConnected: connection successful");
+        refreshPlacesData();
     }
 
     @Override
